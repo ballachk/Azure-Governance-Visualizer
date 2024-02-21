@@ -17,8 +17,10 @@ jobs:
     name: Check & Pull Latest Upstream GitHub Release
     if: github.repository == 'Azure/Azure-Governance-Visualizer' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:
@@ -63,10 +65,16 @@ jobs:
       - name: Find and Replace Upstream Repo With This Repo
         uses: jacobtomlinson/gha-find-replace@v3
         with:
-          find: 'JulianHayward/Azure-MG-Sub-Governance-Reporting'
-          replace: 'Azure/Azure-Governance-Visualizer'
+          find: "JulianHayward/Azure-MG-Sub-Governance-Reporting"
+          replace: "Azure/Azure-Governance-Visualizer"
           regex: false
-          exclude: '**/.github/workflows/upstream-release-checker.yml'
+          exclude: "**/.github/workflows/upstream-release-checker.yml"
+
+      - name: Check for upstream release and pull if available
+        shell: pwsh
+        run: |
+          .github/scripts/Invoke-ContentReplacer.ps1
+        working-directory: ${{ github.repository }}
 
       - name: Check for changes
         id: git_status
